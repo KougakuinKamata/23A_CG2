@@ -20,12 +20,12 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Object3d.VS.hlsl" />
-    <FxCompile Include="Object3d.PS.hlsl" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="MyVector4.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Object3d.PS.hlsl" />
+    <FxCompile Include="Object3d.VS.hlsl" />
   </ItemGroup>
 </Project>

@@ -1,5 +1,3 @@
-
-
 #include <Windows.h>
 #include <cstdint>
 #include <string>
@@ -15,6 +13,8 @@
 #pragma comment(lib, "dxguid.lib")
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
+
+ID3D12Resource* CreateBufferResource(ID3D12Device* device, size_t sizeInBytes);
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 	// メッセージに応じてゲーム固有の処理を行う
@@ -95,12 +95,12 @@ IDxcBlob* CompileShader(
 	shaderSourceBuffer.Encoding = DXC_CP_UTF8; // UTF8の文字コードであることを通知
 	// 2. Compileする
 	LPCWSTR arguments[] = {
-	filePath.c_str(), // コンパイル対象のhlslファイル名
-	L"-E", L"main", // エントリーポイントの指定。基本的にmain以外にはしない
-	L"-T", profile, // ShaderProfileの設定
-	L"-Zi", L"-Qembed_debug",   // デバッグ用の情報を埋め込む
-	L"-Od",     // 最適化を外しておく
-	L"-Zpr",    // メモリレイアウトは行優先
+		filePath.c_str(), // コンパイル対象のhlslファイル名
+		L"-E", L"main", // エントリーポイントの指定。基本的にmain以外にはしない
+		L"-T", profile, // ShaderProfileの設定
+		L"-Zi", L"-Qembed_debug",   // デバッグ用の情報を埋め込む
+		L"-Od",     // 最適化を外しておく
+		L"-Zpr",    // メモリレイアウトは行優先
 	};
 	// 実際にShaderをコンパイルする
 	IDxcResult* shaderResult = nullptr;
@@ -397,6 +397,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 	D3D12_ROOT_SIGNATURE_DESC descriptionRootSignature{};
 	descriptionRootSignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
+
+
 	// RootParameter作成。複数設定できるので配列。今回は結果1つだけなので長さ1の配列
 	D3D12_ROOT_PARAMETER rootParameters[1] = {};
 	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;    // CBVを使う
@@ -470,25 +472,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 
 #pragma endregion
 
-	// 頂点リソース用のヒープの設定
-	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
-	uploadHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;// UploadHeapを使う
-	// 頂点リソースの設定
-	D3D12_RESOURCE_DESC vertexResourceDesc{};
-	// バッファリソース。テクスチャの場合はまた別の設定をする
-	vertexResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	vertexResourceDesc.Width = sizeof(Vector4) * 3;// リソースのサイズ。今回はVector4を3頂点分
-	// バッファの場合はこれらは1にする決まり
-	vertexResourceDesc.Height = 1;
-	vertexResourceDesc.DepthOrArraySize = 1;
-	vertexResourceDesc.MipLevels = 1;
-	vertexResourceDesc.SampleDesc.Count = 1;
-	// バッファの場合はこれにする決まり
-	vertexResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-	// 実際に頂点リソースを作る
-	ID3D12Resource* vertexResource = nullptr;
-	hr = device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource));
-	assert(SUCCEEDED(hr));
+	// 頂点リソースを作る
+	ID3D12Resource* vertexResource = CreateBufferResource(device, sizeof(Vector4) * 3);
 
 	// 頂点バッファビューを作成する
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView{};
@@ -510,6 +495,16 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 	vertexData[1] = { 0.0f, 0.5f, 0.0f, 1.0f };
 	// 右下
 	vertexData[2] = { 0.5f, -0.5f, 0.0f, 1.0f };
+	
+	// マテリアル用のリソースを作る。今回はcolor1つ分のサイズを用意する
+	ID3D12Resource* materialResource = CreateBufferResource(device, sizeof(Vector4));
+	// マテリアルにデータを書き込む
+	Vector4* materialData = nullptr;
+	// 書き込むためのアドレスを取得
+	materialResource->Map(0, nullptr, reinterpret_cast<void**>(&materialData));
+	// 今回は赤を書き込んでみる
+	*materialData = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
+
 
 	// ビューポート
 	D3D12_VIEWPORT viewport{};
@@ -539,6 +534,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		else {
 			// ゲームの処理
 
+
+
+			// 描画
 			// これから書き込むバックバッファのインデックスを取得
 			UINT backBufferIndex = swapChain->GetCurrentBackBufferIndex();
 
@@ -563,6 +561,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			float clearColor[] = { 0.1f,0.25f,0.5f,1.0f };
 			commandList->ClearRenderTargetView(rtvHandles[backBufferIndex], clearColor, 0, nullptr);
 
+
 			commandList->RSSetViewports(1, &viewport);  // Viewportを設定
 			commandList->RSSetScissorRects(1, &scissorRect);    // Scirssorを設定
 
@@ -570,6 +569,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			commandList->SetGraphicsRootSignature(rootSignature);
 			commandList->SetPipelineState(graphicsPipelineState);   // PSOを設定
 			commandList->IASetVertexBuffers(0, 1, &vertexBufferView);   // VBVを設定
+			// マテリアルCBufferの場所を設定
+			commandList->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
+
+
 			// 形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良いcommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			// 描画！（DrawCall/ドローコール）。3頂点で1つのインスタンス。インスタンスについては今後
@@ -635,6 +638,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		errorBlob->Release();
 	}
 	rootSignature->Release();
+	materialResource->Release();
 	pixelShaderBlob->Release();
 	vertexShaderBlob->Release();
 
@@ -653,4 +657,35 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 	}
 
 	return 0;
+}
+
+ID3D12Resource* CreateBufferResource(ID3D12Device* device, size_t sizeInBytes) {
+	// リソース用のヒープの設定
+	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
+	uploadHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;// UploadHeapを使う
+	// リソースの設定
+	D3D12_RESOURCE_DESC resourceDesc{};
+	// バッファリソース。テクスチャの場合はまた別の設定をする
+	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	resourceDesc.Width = sizeInBytes;// リソースのサイズ。今回はVector4を3頂点分
+	// バッファの場合はこれらは1にする決まり
+	resourceDesc.Height = 1;
+	resourceDesc.DepthOrArraySize = 1;
+	resourceDesc.MipLevels = 1;
+	resourceDesc.SampleDesc.Count = 1;
+	// バッファの場合はこれにする決まり
+	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	// リソースを作る
+	ID3D12Resource* resource = nullptr;
+	HRESULT hr = device->CreateCommittedResource(
+		&uploadHeapProperties,
+		D3D12_HEAP_FLAG_NONE,
+		&resourceDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&resource)
+	);
+	assert(SUCCEEDED(hr));
+
+	return resource;
 }
