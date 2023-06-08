@@ -309,8 +309,7 @@ Matrix4x4 MakeTranslateMatrix(const Vector3& translate) {
 
 #include <DirectXMath.h>
 
-Matrix4x4
-MakeViewportMatrix(float left, float top, float width, float height, float nearZ, float farZ) {
+Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, float nearZ, float farZ) {
 	Matrix4x4 matViewport = MakeIdentityMatrix();
 	matViewport.m[0][0] = +width / 2.0f;
 	matViewport.m[1][1] = -height / 2.0f;
@@ -355,10 +354,11 @@ Matrix4x4 MakePerspectiveFovMatrix(float fovY, float aspectRatio, float nearClip
 	float width = height / aspectRatio;
 	float fRange = farClip / (farClip - nearClip);
 
-	Matrix4x4 m{ width,  0.0f, 0.0f, 0.0f, 0.0f,
-				height, 0.0f, 0.0f, 0.0f, 0.0f,
-				fRange, 1.0f, 0.0f, 0.0f, -fRange * nearClip,
-				0.0f };
+	Matrix4x4 m{
+		width,  0.0f, 0.0f, 0.0f, 0.0f,
+		height, 0.0f, 0.0f, 0.0f, 0.0f,
+		fRange, 1.0f, 0.0f, 0.0f, -fRange * nearClip,0.0f
+	};
 
 	return m;
 }
