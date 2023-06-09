@@ -51,6 +51,9 @@
     <ClCompile Include="Math\MyMath.cpp">
       <Filter>Math</Filter>
     </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="externals\imgui\imconfig.h">
@@ -94,6 +97,9 @@
     </ClInclude>
     <ClInclude Include="Math\MyVector4.h">
       <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.h">
+      <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

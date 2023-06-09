@@ -1,4 +1,4 @@
-#include <Windows.h>
+#include "Window.h"
 #include <cstdint>
 #include <string>
 #include <format>
@@ -25,25 +25,25 @@
 #include "externals/DirectXTex/DirectXTex.h"
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParm);
 
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
-	// ImGuiを操作していたら後続の処理を打ち切る
-	if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam)) {
-		return true;
-	}
-	
-	// メッセージに応じてゲーム固有の処理を行う
-	switch (msg)
-	{
-		// ウィンドウが破棄された
-	case WM_DESTROY:
-		// OSに対して、アプリの終了を伝える
-		PostQuitMessage(0);
-		break;
-	}
-
-	// 標準のメッセージ処理を行う
-	return DefWindowProc(hwnd, msg, wparam, lparam);
-}
+//LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
+//	// ImGuiを操作していたら後続の処理を打ち切る
+//	if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam)) {
+//		return true;
+//	}
+//	
+//	// メッセージに応じてゲーム固有の処理を行う
+//	switch (msg)
+//	{
+//		// ウィンドウが破棄された
+//	case WM_DESTROY:
+//		// OSに対して、アプリの終了を伝える
+//		PostQuitMessage(0);
+//		break;
+//	}
+//
+//	// 標準のメッセージ処理を行う
+//	return DefWindowProc(hwnd, msg, wparam, lparam);
+//}
 
 #pragma region プロトタイプ宣言
 
@@ -76,43 +76,46 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 
 
 #pragma region ウィンドウ作成
-	WNDCLASS wc{};
-	// ウィンドウプロシージャ
-	wc.lpfnWndProc = WindowProc;
-	// ウィンドウクラス名
-	wc.lpszClassName = L"CG2_WindowClass";
-	// インスタンスハンドル
-	wc.hInstance = GetModuleHandle(nullptr);
-	// カーソル
-	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
+	Window* window = new Window();
+	window->WindowCreate(L"CG2");
+	
+	//WNDCLASS wc{};
+	//// ウィンドウプロシージャ
+	//wc.lpfnWndProc = WindowProc;
+	//// ウィンドウクラス名
+	//wc.lpszClassName = L"CG2_WindowClass";
+	//// インスタンスハンドル
+	//wc.hInstance = GetModuleHandle(nullptr);
+	//// カーソル
+	//wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
 
-	// ウィンドウクラスを登録する
-	RegisterClass(&wc);
+	//// ウィンドウクラスを登録する
+	//RegisterClass(&wc);
 
-	// クライアント領域のサイズ
-	const int32_t kClientWidth = 1280;
-	const int32_t kClientHeight = 720;
+	//// クライアント領域のサイズ
+	//const int32_t kClientWidth = 1280;
+	//const int32_t kClientHeight = 720;
 
-	// ウィンドウサイズを表す構造体にクライアント領域を入れる
-	RECT wrc = { 0,0,kClientWidth,kClientHeight };
+	//// ウィンドウサイズを表す構造体にクライアント領域を入れる
+	//RECT wrc = { 0,0,kClientWidth,kClientHeight };
 
-	// クライアント領域を元に実際のサイズにwrcを変更してもらう
-	AdjustWindowRect(&wrc, WS_OVERLAPPEDWINDOW, false);
+	//// クライアント領域を元に実際のサイズにwrcを変更してもらう
+	//AdjustWindowRect(&wrc, WS_OVERLAPPEDWINDOW, false);
 
-	// ウィンドウの生成
-	HWND hwnd = CreateWindow(
-		wc.lpszClassName,		// 利用するクラス名
-		L"CG2",					// タイトルバーの文字
-		WS_OVERLAPPEDWINDOW,	// よく見るウィンドウスタイル
-		CW_USEDEFAULT,			// 表示X座標(Windowに任せる)
-		CW_USEDEFAULT,			// 表示Y座標(WindowsOSに任せる)
-		wrc.right - wrc.left,	// ウィンドウ横幅
-		wrc.bottom - wrc.top,	// ウィンドウ縦幅
-		nullptr,				// 親ウィンドウハンドル
-		nullptr,				// メニューハンドル
-		wc.hInstance,			// インタンスハンドル
-		nullptr					// オプション
-	);
+	//// ウィンドウの生成
+	//HWND hwnd = CreateWindow(
+	//	wc.lpszClassName,		// 利用するクラス名
+	//	L"CG2",					// タイトルバーの文字
+	//	WS_OVERLAPPEDWINDOW,	// よく見るウィンドウスタイル
+	//	CW_USEDEFAULT,			// 表示X座標(Windowに任せる)
+	//	CW_USEDEFAULT,			// 表示Y座標(WindowsOSに任せる)
+	//	wrc.right - wrc.left,	// ウィンドウ横幅
+	//	wrc.bottom - wrc.top,	// ウィンドウ縦幅
+	//	nullptr,				// 親ウィンドウハンドル
+	//	nullptr,				// メニューハンドル
+	//	wc.hInstance,			// インタンスハンドル
+	//	nullptr					// オプション
+	//);
 
 #ifdef _DEBUG
 	ID3D12Debug1* debugController = nullptr;
@@ -125,7 +128,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 #endif
 
 	// ウィンドウを表示する
-	ShowWindow(hwnd, SW_SHOW);
+	//ShowWindow(hwnd, SW_SHOW);
 
 #pragma endregion
 
@@ -243,8 +246,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 	// スワップチェーンを生成する
 	IDXGISwapChain4* swapChain = nullptr;
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
-	swapChainDesc.Width = kClientWidth;								// 画面の幅。ウィンドウのクライアント領域を同じものにしておく
-	swapChainDesc.Height = kClientHeight;							// 画面の高さ。ウィンドウのクライアント領域を同じものにしておく
+	swapChainDesc.Width = window->GetClientWidth();								// 画面の幅。ウィンドウのクライアント領域を同じものにしておく
+	swapChainDesc.Height = window->GetClientHeight();							// 画面の高さ。ウィンドウのクライアント領域を同じものにしておく
 	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;				// 色の形式
 	swapChainDesc.SampleDesc.Count = 1;								// マルチサンプルしない
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;	// 描画のターゲットとして利用する
@@ -254,7 +257,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 	// コマンドキュー、ウィンドウハンドル、設定を渡して生成する
 	hr = dxgiFactory->CreateSwapChainForHwnd(
 		commandQueue,
-		hwnd,
+		window->GetHWND(),
 		&swapChainDesc,
 		nullptr,
 		nullptr,
@@ -459,7 +462,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 #pragma region ステンシルビュー
 
 	// DepthStencilTextureをウィンドウのサイズで作成
-	ID3D12Resource* depthStencilResource = CreateDepthStencilTextureResource(device, kClientWidth, kClientHeight);
+	ID3D12Resource* depthStencilResource = CreateDepthStencilTextureResource(device, window->GetClientWidth(), window->GetClientHeight());
 
 	// DSV用のヒープでディスクリプタの数は1。DSVはShader内で触るものではないので、ShaderVisibleはfalse
 	ID3D12DescriptorHeap* dsvDescriptorHeap = CreateDescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1, false);
@@ -556,15 +559,15 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 	Matrix4x4 worldMatrix = MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
 	Matrix4x4 cameraMatrix = MakeAffineMatrix(cameraTransform.scale, cameraTransform.rotate, cameraTransform.translate);
 	Matrix4x4 viewMatrix = Inverse(cameraMatrix);
-	Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, float(kClientWidth) / float(kClientHeight), 0.1f, 100.0f);
+	Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, float(window->GetClientWidth()) / float(window->GetClientHeight()), 0.1f, 100.0f);
 	Matrix4x4 worldViewProjectionMatrix = worldMatrix * viewMatrix * projectionMatrix;
 	*wvpData = worldViewProjectionMatrix;
 
 	// ビューポート
 	D3D12_VIEWPORT viewport{};
 	// クライアント領域のサイズと一緒にして画面全体に表示
-	viewport.Width = kClientWidth;
-	viewport.Height = kClientHeight;
+	viewport.Width = (float)window->GetClientWidth();
+	viewport.Height = (float)window->GetClientHeight();
 	viewport.TopLeftX = 0;
 	viewport.TopLeftY = 0;
 	viewport.MinDepth = 0.0f;
@@ -574,16 +577,16 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 	D3D12_RECT scissorRect{};
 	// 基本的にビューポートと同じ矩形が構成されるようにする
 	scissorRect.left = 0;
-	scissorRect.right = kClientWidth;
+	scissorRect.right = (LONG)window->GetClientWidth();
 	scissorRect.top = 0;
-	scissorRect.bottom = kClientHeight;
+	scissorRect.bottom = (LONG)window->GetClientHeight();
 	
 #ifdef _DEBUG
 	// Imguiの初期化
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGui::StyleColorsDark();
-	ImGui_ImplWin32_Init(hwnd);
+	ImGui_ImplWin32_Init(window->GetHWND());
 	ImGui_ImplDX12_Init(
 		device,
 		swapChainDesc.BufferCount,
@@ -762,7 +765,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 	ImGui::DestroyContext();
 	debugController->Release();
 #endif
-	CloseWindow(hwnd);
+
+	delete window;
 
 	// リソースリークチェック
 	IDXGIDebug1* debug;
