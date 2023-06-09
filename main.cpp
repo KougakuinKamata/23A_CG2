@@ -611,9 +611,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		}
 		else {
 #ifdef _DEBUG
-			ImGui_ImplDX12_NewFrame();
+			/*ImGui_ImplDX12_NewFrame();
 			ImGui_ImplWin32_NewFrame();
-			ImGui::NewFrame();
+			ImGui::NewFrame();*/
 #endif
 			// ゲームの処理
 
@@ -623,11 +623,11 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			*wvpData = worldViewProjectionMatrix;
 
 #ifdef _DEBUG
-			//// 開発用UIの処理。実際に開発用のUIを出す場合はここをゲーム固有の処理に置き換える
-			ImGui::ShowDemoWindow();
+			////// 開発用UIの処理。実際に開発用のUIを出す場合はここをゲーム固有の処理に置き換える
+			//ImGui::ShowDemoWindow();
 
-			//// IImGuiの内部コマンド生成する
-			ImGui::Render();
+			////// IImGuiの内部コマンド生成する
+			//ImGui::Render();
 #endif
 			// 描画
 			// これから書き込むバックバッファのインデックスを取得
