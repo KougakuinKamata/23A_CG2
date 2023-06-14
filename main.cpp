@@ -613,7 +613,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 	*wvpData2 = MakeIdentity4x4();
 
 	// Transform変数を作る
-	Transform transform2{ {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {-2.0f, 0.0f, 0.0f} };
+	Transform transform2{ {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f} };
+	Vector3 speed = { 0.01f,0.0f,0.0f };
 
 	Matrix4x4 worldMatrix2 = MakeAffineMatrix(transform2.scale, transform2.rotate, transform2.translate);
 	Matrix4x4 worldViewProjectionMatrix2 = worldMatrix2 * viewMatrix * projectionMatrix;
@@ -726,7 +727,14 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			worldViewProjectionMatrix = worldMatrix * viewMatrix * projectionMatrix;
 			*wvpData = worldViewProjectionMatrix;
 			
-			transform2.translate.x += 0.01f;
+			
+
+			transform2.translate += speed;
+
+			if (transform2.translate.x >= 1.5f || transform2.translate.x <= -1.5f) {
+				speed.x *= -1;
+			}
+
 			Matrix4x4 worldMatrix2 = MakeAffineMatrix(transform2.scale, transform2.rotate, transform2.translate);
 			worldViewProjectionMatrix2 = worldMatrix2 * viewMatrix * projectionMatrix;
 			*wvpData2 = worldViewProjectionMatrix2;
