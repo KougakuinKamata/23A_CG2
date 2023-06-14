@@ -495,7 +495,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		Vector2 texcoord;
 	};
 
-
 	// 頂点リソースを作る
 	ID3D12Resource* vertexResource = CreateBufferResource(device, sizeof(VertexData) * 6);
 
@@ -573,12 +572,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 	// 頂点バッファビューを作成する
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView2{};
 	// リソースの先頭のアドレスから使う
-	vertexBufferView.BufferLocation = vertexResource2->GetGPUVirtualAddress();
+	vertexBufferView2.BufferLocation = vertexResource2->GetGPUVirtualAddress();
 	// 使用するリソースのサイズは頂点3つ分のサイズ
-	vertexBufferView.SizeInBytes = sizeof(VertexData) * 3;
+	vertexBufferView2.SizeInBytes = sizeof(VertexData) * 3;
 	Log(std::format("vertexBufferView2.SizeInBytes = {}", vertexBufferView2.SizeInBytes));
 	// 1頂点あたりのサイズ
-	vertexBufferView.StrideInBytes = sizeof(VertexData);
+	vertexBufferView2.StrideInBytes = sizeof(VertexData);
 
 	// 頂点リソースにデータを書き込む
 	VertexData* vertexData2 = nullptr;
@@ -617,7 +616,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 	Transform transform2{ {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {-2.0f, 0.0f, 0.0f} };
 
 	Matrix4x4 worldMatrix2 = MakeAffineMatrix(transform2.scale, transform2.rotate, transform2.translate);
-	Matrix4x4 worldViewProjectionMatrix2 = worldMatrix * viewMatrix * projectionMatrix;
+	Matrix4x4 worldViewProjectionMatrix2 = worldMatrix2 * viewMatrix * projectionMatrix;
 	*wvpData2 = worldViewProjectionMatrix2;
 
 #pragma endregion
@@ -807,6 +806,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			// 描画！（DrawCall/ドローコール）。3頂点で1つのインスタンス。インスタンスについては今後
 			commandList->DrawInstanced(6, 1, 0, 0);
 
+			commandList->IASetVertexBuffers(0, 1, &vertexBufferView2);   // VBVを設定
 			// 二つ目の三角形描画
 			// マテリアルCBufferの場所を設定
 			commandList->SetGraphicsRootConstantBufferView(0, materialResource2->GetGPUVirtualAddress());
@@ -823,6 +823,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 				変更が必要なのは、VBV、TransformationMatrix
 			*/
 			commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite);   // VBVを設定
+			commandList->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
 			// TransformationMatrixCBufferの場所を設定
 			commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
 			// 描画！（DrawCall/ドローコール）
@@ -892,10 +893,15 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 	wvpResource->Release();
 	materialResource->Release();
 	depthStencilResource->Release();
+
 	textureResource->Release();
 	transformationMatrixResourceSprite->Release();
 	vertexResourceSprite->Release();
 
+	wvpResource2->Release();
+	vertexResource2->Release();
+	materialResource2->Release();
+	
 	graphicsPipelineState->Release();
 	signatureBlob->Release();
 	if (errorBlob) {
