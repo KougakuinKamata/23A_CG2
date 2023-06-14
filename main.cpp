@@ -562,6 +562,60 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 	Matrix4x4 worldViewProjectionMatrix = worldMatrix * viewMatrix * projectionMatrix;
 	*wvpData = worldViewProjectionMatrix;
 
+
+	// 頂点リソースを作る
+	ID3D12Resource* vertexResource2 = CreateBufferResource(device, sizeof(VertexData) * 3);
+
+	// 頂点バッファビューを作成する
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferView2{};
+	// リソースの先頭のアドレスから使う
+	vertexBufferView.BufferLocation = vertexResource2->GetGPUVirtualAddress();
+	// 使用するリソースのサイズは頂点3つ分のサイズ
+	vertexBufferView.SizeInBytes = sizeof(VertexData) * 3;
+	Log(std::format("vertexBufferView2.SizeInBytes = {}", vertexBufferView2.SizeInBytes));
+	// 1頂点あたりのサイズ
+	vertexBufferView.StrideInBytes = sizeof(VertexData);
+
+	// 頂点リソースにデータを書き込む
+	VertexData* vertexData2 = nullptr;
+	// 書き込むためのアドレスを取得
+	vertexResource2->Map(0, nullptr, reinterpret_cast<void**>(&vertexData2));
+	// 左下
+	vertexData2[0].position = { -0.5f, -0.5f, 0.0f, 1.0f };
+	vertexData2[0].texcoord = { 0.0f, 1.0f };
+	// 上
+	vertexData2[1].position = { 0.0f, 0.5f, 0.0f, 1.0f };
+	vertexData2[1].texcoord = { 0.5f, 0.0f };
+	// 右下
+	vertexData2[2].position = { 0.5f, -0.5f, 0.0f, 1.0f };
+	vertexData2[2].texcoord = { 1.0f, 1.0f };
+
+	// マテリアル用のリソースを作る。今回はcolor1つ分のサイズを用意する
+	ID3D12Resource* materialResource2 = CreateBufferResource(device, sizeof(Vector4));
+	// マテリアルにデータを書き込む
+	Vector4* materialData2 = nullptr;
+	// 書き込むためのアドレスを取得
+	materialResource2->Map(0, nullptr, reinterpret_cast<void**>(&materialData2));
+
+	// 今回は赤を書き込んでみる
+	*materialData2 = color;
+
+	// WVP用のリソースを作る。Matrix4x4 1つ分のサイズを用意する
+	ID3D12Resource* wvpResource2 = CreateBufferResource(device, sizeof(Matrix4x4));
+	// データを書き込む
+	Matrix4x4* wvpData2 = nullptr;
+	// 書き込むためのアドレスを取得
+	wvpResource2->Map(0, nullptr, reinterpret_cast<void**>(&wvpData2));
+	// 単位行列を書きこんでおく
+	*wvpData2 = MakeIdentity4x4();
+
+	// Transform変数を作る
+	Transform transform2{ {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {-2.0f, 0.0f, 0.0f} };
+
+	Matrix4x4 worldMatrix2 = MakeAffineMatrix(transform2.scale, transform2.rotate, transform2.translate);
+	Matrix4x4 worldViewProjectionMatrix2 = worldMatrix * viewMatrix * projectionMatrix;
+	*wvpData2 = worldViewProjectionMatrix2;
+
 #pragma endregion
 
 #pragma region Sprite
@@ -668,6 +722,11 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			Matrix4x4 worldMatrix = MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
 			worldViewProjectionMatrix = worldMatrix * viewMatrix * projectionMatrix;
 			*wvpData = worldViewProjectionMatrix;
+			
+			transform2.translate.x += 0.01f;
+			Matrix4x4 worldMatrix2 = MakeAffineMatrix(transform2.scale, transform2.rotate, transform2.translate);
+			worldViewProjectionMatrix2 = worldMatrix2 * viewMatrix * projectionMatrix;
+			*wvpData2 = worldViewProjectionMatrix2;
 
 
 			// スプライトの処理
@@ -743,6 +802,16 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			// 描画！（DrawCall/ドローコール）。3頂点で1つのインスタンス。インスタンスについては今後
 			commandList->DrawInstanced(6, 1, 0, 0);
+
+			// 二つ目の三角形描画
+			// マテリアルCBufferの場所を設定
+			commandList->SetGraphicsRootConstantBufferView(0, materialResource2->GetGPUVirtualAddress());
+			// wvp用のCBufferの場所を設定
+			commandList->SetGraphicsRootConstantBufferView(1, wvpResource2->GetGPUVirtualAddress());
+			// 形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良いcommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			// 描画！（DrawCall/ドローコール）。3頂点で1つのインスタンス。インスタンスについては今後
+			commandList->DrawInstanced(3, 1, 0, 0);
 
 			// Spriteの描画。変更が必要なものだけ変更する
 			/*
