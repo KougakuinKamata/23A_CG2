@@ -255,7 +255,7 @@ Matrix4x4 Inverse(const Matrix4x4& m) {
 	return result;
 }
 
-Matrix4x4 MakeIdentityMatrix() {
+Matrix4x4 MakeIdentity4x4() {
 	static const Matrix4x4 result{1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 
@@ -310,7 +310,7 @@ Matrix4x4 MakeTranslateMatrix(const Vector3& translate) {
 #include <DirectXMath.h>
 
 Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, float nearZ, float farZ) {
-	Matrix4x4 matViewport = MakeIdentityMatrix();
+	Matrix4x4 matViewport = MakeIdentity4x4();
 	matViewport.m[0][0] = +width / 2.0f;
 	matViewport.m[1][1] = -height / 2.0f;
 	matViewport.m[2][2] = farZ - nearZ;
@@ -361,6 +361,22 @@ Matrix4x4 MakePerspectiveFovMatrix(float fovY, float aspectRatio, float nearClip
 	};
 
 	return m;
+}
+
+Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float bottom, float nearClip, float farClip)
+{
+	Matrix4x4 result = { 0.0f };
+
+	result.m[0][0] = 2 / (right - left);
+	result.m[1][1] = 2 / (top - bottom);
+	result.m[2][2] = 1 / (farClip - nearClip);
+	result.m[3][0] = (left + right) / (left - right);
+	result.m[3][1] = (top + bottom) / (bottom - top);
+	result.m[3][2] = nearClip / (nearClip - farClip);
+	result.m[3][3] = 1.0f;
+
+
+	return result;
 }
 
 Matrix4x4& operator*=(Matrix4x4& lhm, const Matrix4x4& rhm) {

@@ -41,7 +41,7 @@ Vector3 Normalize(const Vector3& v);
 Matrix4x4 Inverse(const Matrix4x4& m);
 
 // 単位行列の作成
-Matrix4x4 MakeIdentityMatrix();
+Matrix4x4 MakeIdentity4x4();
 // スケーリング行列の作成
 Matrix4x4 MakeScaleMatrix(const Vector3& scale);
 // 回転行列の作成
@@ -55,8 +55,13 @@ Matrix4x4
 MakeViewportMatrix(float left, float top, float width, float height, float nearZ, float farZ);
 // アフィン変換行列の作成
 Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rot, const Vector3& translate);
+
 // 射影変換
+// 透視投影行列
 Matrix4x4 MakePerspectiveFovMatrix(float fovY, float aspectRatio, float nearClip, float farClip);
+// 平行投影行列
+Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float bottom, float nearClip, float farClip);
+
 // 代入演算子オーバーロード
 Matrix4x4& operator*=(Matrix4x4& lhm, const Matrix4x4& rhm);
 
